@@ -1,15 +1,9 @@
-"""
-@Time    : 2020/3/25 19:08
-@Author  : 郭家兴
-@Email   : 302802003@qq.com
-@File    : case.py
-@Desc    : 测试用例模型
-"""
 import math
 import os
 import shutil
 import sys
 import time
+import ast
 from datetime import datetime
 import json
 import re
@@ -34,6 +28,7 @@ from app.libs.utils import paging
 from sqlalchemy import text
 
 from app.models.UserAuth import UserAuth
+import ast
 
 
 class Case(Base):
@@ -138,7 +133,7 @@ class Case(Base):
             if Case.query.filter_by(name=name, case_group=self.case_group, delete_time=None).first():
                 raise ParameterException(msg='当前组已存在同名用例，请更改用例名称')
         # 用例名称暂时不允许修改
-        # self.name = name
+        self.name = name
         self.info = info
         self.url = url
         self.method = CaseMethodEnum(method)
@@ -238,7 +233,8 @@ class Case(Base):
             CaseGroup.name.label('group_name'),
             manager.user_model.username.label('create_user'),
         ).order_by(
-            text('Case.update_time desc')
+            # text('Case.update_time desc')
+            text('case.update_time desc')
         ).paginate(page, count)
 
         items = [dict(zip(result.keys(), result)) for result in results.items]
@@ -294,26 +290,37 @@ class Case(Base):
     # re.search(r'\${(.*)\}','/v1/${job}o').group(0)  '${job}' |  re.search(r'\${(.*)\}','/v1/${job}o').group(1)  'job'
     def var_substitution(self, var_dick):
         # url 处理
-        url_var = re.search(r'\${(.*)\}', self.url)
-        if url_var:
+        # 原代码
+        # url_var = re.search(r'\${(.*)\}', self.url)
+        # if url_var:
+        #     try:
+        #         var = var_dick[url_var.group(1)]
+        #     except Exception:
+        #         # 如果变量不在全局字典中则赋值变量为 ''
+        #         current_app.logger.debug('变量【' + url_var.group(1) + '】不在工程全局字典中')
+        #         var = ''
+        #     self.url = self.url.replace(url_var.group(0), str(var))
+        # 修改为
+        url_var_list = re.findall(r'\$\{(\w*)\}', self.url)
+        for url_var in url_var_list:
             try:
-                var = var_dick[url_var.group(1)]
+                var = var_dick[url_var]
             except Exception:
                 # 如果变量不在全局字典中则赋值变量为 ''
-                current_app.logger.debug('变量【' + url_var.group(1) + '】不在工程全局字典中')
+                current_app.logger.debug('变量【${' + url_var + '}】不在工程全局字典中')
                 var = ''
-            self.url = self.url.replace(url_var.group(0), str(var))
+            self.url = self.url.replace('${' + url_var + '}', str(var))
         # header 处理
         if self.header:
             for key, value in self.header.items():
                 if type(value) == str:
-                    header_var = re.search(r'\${(.*)\}', value)
-                    if header_var:
+                    header_var_list = re.findall(r'\$\{(\w*)\}', value)
+                    for header_var in header_var_list:
                         try:
-                            self.header[key] = var_dick[header_var.group(1)]
+                            self.header[key] = var_dick[header_var]
                         except Exception:
                             # 如果变量不在全局字典中则赋值变量为 None
-                            current_app.logger.debug('变量【' + header_var.group(1) + '】不在工程全局字典中')
+                            current_app.logger.debug('变量【${' + header_var + '}】不在工程全局字典中')
                             self.header[key] = None
         # data 处理
         if self.data:
@@ -325,11 +332,13 @@ class Case(Base):
 
     # 后置处理
     def return_deal(self, var_dick, interface_return):
+        # 保存全部键值对
         if self.deal == CaseDealEnum.DEFAULT.value:
             var_dick = deal_default(var_dick, interface_return)
             # 单用例运行时后置处理保存的参数
             self.deal_result.update(interface_return) if type(interface_return) == dict else 1
         # condition 'target_key,new_key  target_key,new_key'
+        # json提取器
         elif self.deal == CaseDealEnum.JSON.value:
             items = self.condition.split()
             for item in items:
@@ -344,6 +353,7 @@ class Case(Base):
                 # 单用例运行时后置处理保存的参数
                 self.deal_result.update({new_key: var_dick[new_key]}) if target_key in interface_return else 1
         # condition  'pattern,key  pattern,key'
+        # 正则表达式
         elif self.deal == CaseDealEnum.REGULAR.value:
             items = self.condition.split()
             for item in items:
@@ -434,8 +444,12 @@ class Case(Base):
 
     # 字符串转字典
     def str_to_dict(self):
-        self.data = json.loads(self.data) if self.data else self.data
-        self.header = json.loads(self.header) if self.header else self.header
+        # 原代码
+        # self.data = json.loads(self.data) if self.data else self.data
+        # self.header = json.loads(self.header) if self.header else self.header
+        # 修改为
+        self.data = ast.literal_eval(self.data) if self.data else self.data
+        self.header = ast.literal_eval(self.header) if self.header else self.header
 
     def get_request(self):
         res = requests.get(url=self.url, params=self.data, headers=self.header)
@@ -657,7 +671,7 @@ class Case(Base):
             CaseGroup.name.label('group_name'),
             manager.user_model.username.label('create_user'),
         ).order_by(
-            text('Case.update_time desc')
+            text('case.update_time desc')
         ).paginate(page, count)
 
         items = [dict(zip(result.keys(), result)) for result in results.items]
@@ -993,7 +1007,8 @@ class Case(Base):
             cls.expect.label('expect'),
             cls.info,
         ).order_by(
-            text('Case.update_time desc')
+            # text('Case.update_time desc')
+            text('case.update_time desc')
         ).all()
 
         if len(results) == 0:

@@ -10,6 +10,8 @@ from app.libs.lin_flask import LinFlask
 from flask import request, g
 from flask_cors import CORS
 from lin import Lin
+from app.models.scheduler import Scheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 def register_blueprints(app):
@@ -68,6 +70,7 @@ def register_after_request(app):
 
 def create_app(register_all=True, environment='production'):
     app = LinFlask(__name__, static_folder='./assets')
+    # 加载config配置文件
     app.config['ENV'] = environment
     env = app.config.get('ENV')
     if env == 'production':
@@ -78,6 +81,7 @@ def create_app(register_all=True, environment='production'):
         app.config.from_object('app.config.secure.DevelopmentSecure')
     app.config.from_object('app.config.log')
     if register_all:
+        # 注册蓝图
         register_blueprints(app)
         from app.models.user import User
         Lin(app, user_model=User)
@@ -86,12 +90,17 @@ def create_app(register_all=True, environment='production'):
         apply_cors(app)
         # 创建所有表格
         create_tables(app)
+        # 初始化
         mongo.init_app(app)
         celery.init_app(app)
         socket_io.init_app(app, cors_allowed_origins='*')
         # 启动scheduler
         scheduler.init_app(app)
         scheduler.start()
+        # # 初始化job定时任务信息到内存
+        with app.app_context():
+            Scheduler().job_to_cache()
         mail.init_app(app)
+
 
     return app

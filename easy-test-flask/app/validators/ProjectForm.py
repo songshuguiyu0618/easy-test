@@ -1,10 +1,3 @@
-"""
-@Time    : 2020/4/11 14:57
-@Author  : 郭家兴
-@Email   : 302802003@qq.com
-@File    : ProjectForm.py
-@Desc    :
-"""
 from lin.forms import Form
 from wtforms import StringField, FieldList, IntegerField, BooleanField, Field
 from wtforms.validators import DataRequired, length, Optional

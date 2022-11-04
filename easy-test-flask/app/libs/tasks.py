@@ -16,18 +16,23 @@ sys.path.append('../../')
 
 celery.conf.update(imports='app.libs.tasks')
 
-
 @celery.task
 def execute_test(pid, create_user_id, scheduler_id=None):
     # 初始化工程进度
     project = Project.query.filter_by(id=pid, delete_time=None).first_or_404()
     project.update_progress(progress=0, running=True)
+    # 执行用例开始
     try:
         project.batch(create_user_id, scheduler_id)
         log.logger.info('任务执行完成')
     finally:
         time.sleep(3)
         project.update_progress(progress=0, running=False)
+        # 定时任务（非删除）重新进内存
+        from app.models.scheduler import Scheduler
+        Scheduler().job_to_cache(scheduler_id)
+
+    # 执行用例结束
     return True
 
 

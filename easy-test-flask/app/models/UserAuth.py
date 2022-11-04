@@ -1,8 +1,4 @@
-""" 
-@Time    : 2020/3/14 15:12
-@Author  : 郭家兴
-@Email   : 302802003@qq.com
-@File    : UserAuth.py
+"""
 @Desc    : 用户权限分配表 对用户可操作的测试分组、测试项目授权
 """
 from lin.interface import InfoCrud as Base

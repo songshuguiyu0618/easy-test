@@ -31,8 +31,13 @@ def mock(path):
     if not mocks:
         raise MethodMockException()
 
-    response_body = json.loads(mocks[0]['response_body']) if mocks[0]['response_body'] else ''
+    # 原代码
+    # response_body = json.loads(mocks[0]['response_body']) if mocks[0]['response_body'] else ''
+    # status_code = mocks[0]['status_code']
+    # response_header = json.loads(mocks[0]['response_header']) if mocks[0]['response_header'] else ''
+    # 修改成
+    response_body = mocks[0]['response_body'] if mocks[0]['response_body'] else ''
     status_code = mocks[0]['status_code']
-    response_header = json.loads(mocks[0]['response_header']) if mocks[0]['response_header'] else ''
+    response_header = mocks[0]['response_header'] if mocks[0]['response_header'] else ''
 
     return response_body, status_code, response_header

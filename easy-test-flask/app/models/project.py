@@ -87,8 +87,13 @@ class Project(Base):
 
     @classmethod
     def get_all(cls):
+        # 原代码
+        # projects = cls.query.filter_by(delete_time=None) \
+            # .order_by(text('Project.running desc'), text('Project.update_time desc')).all()
+        # 修改为
         projects = cls.query.filter_by(delete_time=None) \
-            .order_by(text('Project.running desc'), text('Project.update_time desc')).all()
+            .order_by(text('project.running desc'), text('project.update_time desc')).all()
+
         for project in projects:
             # 添加user_name属性
             user_name = manager.user_model.query.filter_by(id=project.user).first().username
@@ -129,7 +134,10 @@ class Project(Base):
             cls.user,
             cls.send_email,
             cls.copy_person,
-        ).order_by(text('Project.running desc'), text('Project.update_time desc')).paginate(page, count)
+        # 原代码
+        # ).order_by(text('Project.running desc'), text('Project.update_time desc')).paginate(page, count)
+        # 修改为
+          ).order_by(text('project.running desc'), text('project.update_time desc')).paginate(page, count)
 
         projects = [dict(zip(result.keys(), result)) for result in results.items]
 
@@ -153,9 +161,14 @@ class Project(Base):
 
     @classmethod
     def search(cls, name):
+        # 原代码
+        # projects = cls.query.filter(cls.name.like(f'%{name}%') if name is not None else '',
+        #                             cls.delete_time == None) \
+        #     .order_by(text('Project.running desc'), text('Project.update_time desc')).all()
+        # 修改后
         projects = cls.query.filter(cls.name.like(f'%{name}%') if name is not None else '',
                                     cls.delete_time == None) \
-            .order_by(text('Project.running desc'), text('Project.update_time desc')).all()
+            .order_by(text('project.running desc'), text('project.update_time desc')).all()
         return projects
 
     @classmethod
@@ -301,7 +314,7 @@ class Project(Base):
         # 执行完毕将结果广播给客户端
         api_server = current_app.config.get('API_SERVER')
         res = requests.get(url=api_server + '/v1/task/finish/' + str(self.id))
-        current_app.logger.debug(res.text)
+        current_app.logger.debug(res.text.encode('utf-8').decode('unicode_escape'))
 
         # 发送邮件
         from app.libs.tasks import send_text_email
@@ -341,7 +354,7 @@ class Project(Base):
             cls.user,
             cls.send_email,
             cls.copy_person,
-        ).order_by(text('Project.running desc'), text('Project.update_time desc')).paginate(page, count)
+        ).order_by(text('project.running desc'), text('project.update_time desc')).paginate(page, count)
 
         projects = [dict(zip(result.keys(), result)) for result in results.items]
 

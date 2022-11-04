@@ -152,7 +152,7 @@ class Task(Base):
             cls.fail,
             cls._create_time.label('create_time')
         ).order_by(
-            text('Task.update_time desc')
+            text('task.update_time desc')
         ).paginate(page, count)
 
         items = [dict(zip(result.keys(), result)) for result in results.items]

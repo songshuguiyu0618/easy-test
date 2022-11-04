@@ -1,10 +1,3 @@
-""" 
-@Time    : 2020/2/23 17:08
-@Author  : 郭家兴
-@Email   : 302802003@qq.com
-@File    : user.py.py
-@Desc    :
-"""
 from lin import db
 from lin.core import User as _User
 from sqlalchemy import Column, String

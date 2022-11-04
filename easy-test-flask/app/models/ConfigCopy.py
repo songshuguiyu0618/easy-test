@@ -1,8 +1,4 @@
 """
-@Time    : 2020/4/18 19:08
-@Author  : 郭家兴
-@Email   : 302802003@qq.com
-@File    : ConfigCopy.py
 @Desc    : 工程配置-副本
 """
 from flask import current_app

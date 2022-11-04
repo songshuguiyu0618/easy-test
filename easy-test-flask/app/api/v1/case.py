@@ -1,8 +1,4 @@
 """
-@Time    : 2020/3/21 10:36
-@Author  : 郭家兴
-@Email   : 302802003@qq.com
-@File    : case.py
 @Desc    : 用例视图
 """
 import os

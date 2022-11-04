@@ -105,7 +105,10 @@ class Scheduler(Base):
             cls._email_strategy.label('email_strategy'),
             cls.cron,
         ).order_by(
-            text('Scheduler.update_time desc')
+            # 原代码
+            # text('Scheduler.update_time desc')
+            # 修改为
+            text('scheduler.update_time desc')
         ).paginate(page, count)
 
         jobs = [dict(zip(result.keys(), result)) for result in results.items]
@@ -140,6 +143,26 @@ class Scheduler(Base):
 
         return data
 
+    # 定时任务数据加载到内存
+    def job_to_cache(self,scheduler_id = None):
+        # 初始化数据时，加载未删除定时任务，到内存
+        if scheduler_id == None:
+            data = self.query.filter_by(delete_time=None).all()
+            for i in data:
+                self.project_id = i.project_id
+                self.scheduler_id = i.scheduler_id
+                self.cron = i.cron
+                self.add_job()
+
+        # 定时任务结束后重新加载到内存
+        elif scheduler_id is not None:
+            data = self.query.filter_by(scheduler_id=scheduler_id,delete_time=None).first()
+            self.project_id = data.project_id
+            self.scheduler_id = data.scheduler_id
+            self.cron = data.cron
+            self.add_job()
+
+
     def start_job(self):
         scheduler.resume_job(self.scheduler_id)
 
@@ -171,7 +194,7 @@ class Scheduler(Base):
     def remove_job(self):
         self.delete_time = datetime.datetime.now()
         db.session.commit()
-        scheduler.delete_job(self.scheduler_id)
+        scheduler.remove_job(self.scheduler_id)
 
     # 获取所有任务
     @classmethod
@@ -193,7 +216,7 @@ class Scheduler(Base):
             cls.send_email,
             cls.cron,
         ).order_by(
-            text('Scheduler.update_time desc')
+            text('scheduler.update_time desc')
         ).paginate(page, count)
 
         jobs = [dict(zip(result.keys(), result)) for result in results.items]

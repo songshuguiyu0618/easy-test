@@ -1,10 +1,3 @@
-""" 
-@Time    : 2020/3/14 10:13
-@Author  : 郭家兴
-@Email   : 302802003@qq.com
-@File    : CaseGroup.py
-@Desc    :
-"""
 from flask import jsonify
 from lin import login_required, route_meta, group_required
 from lin.exception import Success

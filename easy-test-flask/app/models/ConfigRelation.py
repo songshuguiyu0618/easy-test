@@ -1,8 +1,4 @@
 """
-@Time    : 2020/4/18 19:08
-@Author  : 郭家兴
-@Email   : 302802003@qq.com
-@File    : ConfigRelation.py
 @Desc    : 工程配置-关联
 """
 from celery.utils import log
@@ -115,7 +111,7 @@ class ConfigRelation(Base):
         param = project.get_user_parameters()['param']
         # 将变量加入到全局字典
         project.var_dick.update(param) if param else ''
-        log.logger.info(project.var_dick)
+        log.logger.info(f'自定义运行时变量{project.var_dick}')
         configs = cls.query.filter_by(project_id=project.id, is_run=True).order_by(cls.order).all()
         if not configs:
             raise ConfigNotFound(msg='工程下无可运行用例')

@@ -1,10 +1,3 @@
-"""
-@Time    : 2020/3/14 11:00
-@Author  : 郭家兴
-@Email   : 302802003@qq.com
-@File    : CaseForm.py
-@Desc    :
-"""
 import time
 
 from lin.forms import Form
@@ -117,7 +110,7 @@ class CaseDebugForm(Form):
     method = IntegerField(default=1)
     header = StringField(length(max=500, message='header长度应小于500个字'),
                          validators=[Optional()])
-    data = StringField(length(max=500, message='data长度应小于500个字'),
+    data = StringField(length(max=10000, message='data长度应小于10000个字'),
                        validators=[Optional()])
     submit = IntegerField(default=1)
 
